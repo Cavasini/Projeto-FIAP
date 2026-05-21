@@ -1,0 +1,172 @@
+[
+  {
+    "fileName": "folha exemplo.jpg",
+    "timestamp": "2026-04-16T23:00:21.089Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Saudavel",
+    "porcentagens": {
+      "Saudavel": 73.2,
+      "Doente": 26.8
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg",
+    "timestamp": "2026-04-16T23:00:30.941Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "img_8.png",
+    "timestamp": "2026-04-16T23:00:54.112Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Saudavel",
+    "porcentagens": {
+      "Saudavel": 88.5,
+      "Doente": 11.5
+    }
+  },
+  {
+    "fileName": "amostra_soja_01.jpg",
+    "timestamp": "2026-04-17T08:15:02.000Z",
+    "localidade": "Talhão B",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 45.1,
+      "Doente": 54.9
+    }
+  },
+  {
+    "fileName": "amostra_soja_02.jpeg",
+    "timestamp": "2026-04-17T08:16:10.550Z",
+    "localidade": "Talhão B",
+    "estadoDefinido": "Saudavel",
+    "porcentagens": {
+      "Saudavel": 99.1,
+      "Doente": 0.9
+    }
+  },
+  {
+    "fileName": "captura_drone_44.png",
+    "timestamp": "2026-04-17T10:30:45.321Z",
+    "localidade": "Setor Norte",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 12.4,
+      "Doente": 87.6
+    }
+  },
+  {
+    "fileName": "captura_drone_45.png",
+    "timestamp": "2026-04-17T10:31:05.105Z",
+    "localidade": "Setor Norte",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 22,
+      "Doente": 78
+    }
+  },
+  {
+    "fileName": "folha_milho_teste.jpg",
+    "timestamp": "2026-04-18T14:20:11.999Z",
+    "localidade": "Talhão C",
+    "estadoDefinido": "Saudavel",
+    "porcentagens": {
+      "Saudavel": 65.3,
+      "Doente": 34.7
+    }
+  },
+  {
+    "fileName": "ferrugem_01.jpg",
+    "timestamp": "2026-04-18T14:25:33.400Z",
+    "localidade": "Talhão C",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 2.5,
+      "Doente": 97.5
+    }
+  },
+  {
+    "fileName": "foto_celular_joao.png",
+    "timestamp": "2026-04-19T09:05:00.123Z",
+    "localidade": "Estufa 1",
+    "estadoDefinido": "Saudavel",
+    "porcentagens": {
+      "Saudavel": 100,
+      "Doente": 0
+    }
+  },
+  {
+    "fileName": "folha exemplo.jpg",
+    "timestamp": "2026-05-21T14:34:59.710Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Saudavel",
+    "porcentagens": {
+      "Saudavel": 73.2,
+      "Doente": 26.8
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg",
+    "timestamp": "2026-05-21T14:40:33.966Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg",
+    "timestamp": "2026-05-21T14:47:26.266Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg",
+    "timestamp": "2026-05-21T15:24:06.669Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg",
+    "timestamp": "2026-05-21T15:27:48.366Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg",
+    "timestamp": "2026-05-21T15:28:44.168Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg",
+    "timestamp": "2026-05-21T15:29:40.091Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  }
+]

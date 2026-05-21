@@ -1,0 +1,22 @@
+[
+  {
+    "tipo": "surto",
+    "local": "Talhão A",
+    "mensagem": "Taxa: 70.0% das amostras estão doentes."
+  },
+  {
+    "tipo": "critico",
+    "local": "Talhão A",
+    "mensagem": "7 caso(s) com nível CRÍTICO (>85% de certeza). Acionar agrônomo."
+  },
+  {
+    "tipo": "critico",
+    "local": "Setor Norte",
+    "mensagem": "1 caso(s) com nível CRÍTICO (>85% de certeza). Acionar agrônomo."
+  },
+  {
+    "tipo": "critico",
+    "local": "Talhão C",
+    "mensagem": "1 caso(s) com nível CRÍTICO (>85% de certeza). Acionar agrônomo."
+  }
+]

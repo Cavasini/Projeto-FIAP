@@ -1,0 +1,12 @@
+{
+	"dependencies": {
+		"cors": "^2.8.6",
+		"express": "^5.2.1"
+	},
+	"devDependencies": {
+		"concurrently": "^9.2.1"
+	},
+	"scripts": {
+		"dev": "concurrently \"node server.js\" \"npx serve\""
+	}
+}

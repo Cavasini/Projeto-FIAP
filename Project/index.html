@@ -1,0 +1,1425 @@
+<!doctype html>
+<html lang="pt-BR">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0"
+		/>
+		<title>Scanner — Análise de Folhas</title>
+		<link
+			href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;1,9..144,300&display=swap"
+			rel="stylesheet"
+		/>
+		<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+
+		<style>
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+				margin: 0;
+				padding: 0;
+			}
+
+			:root {
+				--bg: #f0ede6;
+				--bg2: #e8e4db;
+				--surface: #faf8f4;
+				--surface2: #f2efe8;
+				--border: rgba(0, 0, 0, 0.09);
+				--border2: rgba(0, 0, 0, 0.05);
+				--text: #1a1a16;
+				--muted: #7a7a6e;
+				--muted2: #b0afa6;
+				--green: #3d7a1f;
+				--green-bg: #eaf4df;
+				--green-border: rgba(61, 122, 31, 0.25);
+				--red: #9b2626;
+				--red-bg: #faeaea;
+				--red-border: rgba(155, 38, 38, 0.25);
+				--amber: #a86b0c;
+				--amber-bg: #fef3dc;
+				--amber-border: rgba(168, 107, 12, 0.25);
+				--blue: #1a5c9e;
+				--blue-bg: #e8f2fc;
+				--radius: 14px;
+				--mono: "DM Mono", monospace;
+				--serif: "Fraunces", Georgia, serif;
+			}
+
+			@media (prefers-color-scheme: dark) {
+				:root {
+					--bg: #17170f;
+					--bg2: #1e1e14;
+					--surface: #222218;
+					--surface2: #2a2a1e;
+					--border: rgba(255, 255, 255, 0.08);
+					--border2: rgba(255, 255, 255, 0.04);
+					--text: #f0ece2;
+					--muted: #9a9a8a;
+					--muted2: #5a5a4e;
+					--green: #7cc144;
+					--green-bg: #1a3208;
+					--green-border: rgba(124, 193, 68, 0.2);
+					--red: #e07070;
+					--red-bg: #2e0f0f;
+					--red-border: rgba(224, 112, 112, 0.2);
+					--amber: #e8a830;
+					--amber-bg: #2a1a00;
+					--amber-border: rgba(232, 168, 48, 0.2);
+					--blue: #6aabee;
+					--blue-bg: #091e3a;
+				}
+			}
+
+			body {
+				font-family: var(--mono);
+				background: var(--bg);
+				color: var(--text);
+				min-height: 100vh;
+			}
+
+			/* ── Header ── */
+			header {
+				background: var(--surface);
+				border-bottom: 1px solid var(--border);
+				padding: 0.875rem 1.5rem;
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				gap: 1rem;
+				position: sticky;
+				top: 0;
+				z-index: 50;
+				backdrop-filter: blur(12px);
+			}
+
+			.header-left {
+				display: flex;
+				align-items: center;
+				gap: 10px;
+			}
+
+			.header-logo {
+				width: 32px;
+				height: 32px;
+				background: var(--green);
+				border-radius: 8px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				font-size: 16px;
+				flex-shrink: 0;
+			}
+
+			header h1 {
+				font-family: var(--serif);
+				font-size: 16px;
+				font-weight: 600;
+				letter-spacing: -0.01em;
+			}
+
+			header h1 span {
+				color: var(--muted);
+				font-weight: 300;
+				font-style: italic;
+			}
+
+			/* Session counter badge */
+			.session-badge {
+				font-size: 11px;
+				font-family: var(--mono);
+				background: var(--bg2);
+				border: 1px solid var(--border);
+				border-radius: 20px;
+				padding: 3px 10px;
+				color: var(--muted);
+			}
+
+			.session-badge b {
+				color: var(--text);
+			}
+
+			/* ── Buttons ── */
+			button {
+				font-family: var(--mono);
+				font-size: 12px;
+				padding: 8px 14px;
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				cursor: pointer;
+				font-weight: 500;
+				transition: all 0.15s;
+				letter-spacing: 0.01em;
+			}
+
+			button.primary {
+				background: var(--text);
+				color: var(--bg);
+				border-color: transparent;
+			}
+
+			button.secondary {
+				background: var(--surface);
+				color: var(--text);
+			}
+
+			button:hover {
+				opacity: 0.85;
+				transform: translateY(-1px);
+			}
+			button:active {
+				transform: translateY(0);
+			}
+
+			button:disabled {
+				opacity: 0.4;
+				cursor: not-allowed;
+				transform: none;
+			}
+
+			/* ── Layout ── */
+			.page {
+				max-width: 1280px;
+				margin: 0 auto;
+				padding: 1.5rem;
+				display: grid;
+				grid-template-columns: 300px 1fr 340px;
+				gap: 1.25rem;
+				align-items: start;
+			}
+
+			@media (max-width: 1100px) {
+				.page {
+					grid-template-columns: 1fr 1fr;
+				}
+				.col-right {
+					grid-column: 1 / -1;
+				}
+			}
+
+			@media (max-width: 700px) {
+				.page {
+					grid-template-columns: 1fr;
+				}
+			}
+
+			/* ── Cards ── */
+			.card {
+				background: var(--surface);
+				border: 1px solid var(--border);
+				border-radius: var(--radius);
+				padding: 1.25rem;
+			}
+
+			.card-title {
+				font-size: 10px;
+				font-family: var(--mono);
+				font-weight: 500;
+				color: var(--muted);
+				text-transform: uppercase;
+				letter-spacing: 0.1em;
+				margin-bottom: 1rem;
+			}
+
+			/* ── Inputs ── */
+			label.field-label {
+				font-size: 11px;
+				color: var(--muted);
+				display: block;
+				margin-bottom: 4px;
+			}
+
+			input[type="text"],
+			select {
+				font-family: var(--mono);
+				font-size: 12px;
+				padding: 8px 10px;
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				background: var(--bg2);
+				color: var(--text);
+				width: 100%;
+				outline: none;
+				transition: border-color 0.15s;
+			}
+
+			input[type="text"]:focus,
+			select:focus {
+				border-color: var(--blue);
+			}
+
+			.field {
+				margin-bottom: 10px;
+			}
+
+			/* ── Dropzone ── */
+			.dropzone {
+				border: 1.5px dashed var(--border);
+				border-radius: var(--radius);
+				padding: 1.5rem 1rem;
+				text-align: center;
+				background: var(--bg2);
+				cursor: pointer;
+				transition: all 0.2s;
+			}
+
+			.dropzone:hover {
+				border-color: var(--blue);
+				background: var(--blue-bg);
+			}
+
+			.dropzone-icon {
+				font-size: 28px;
+				margin-bottom: 6px;
+			}
+			.dropzone p {
+				font-size: 12px;
+				color: var(--muted);
+			}
+			.dropzone small {
+				font-size: 11px;
+				color: var(--muted2);
+			}
+
+			/* ── Session counter ── */
+			.session-progress {
+				background: var(--bg2);
+				border: 1px solid var(--border);
+				border-radius: 10px;
+				padding: 10px 12px;
+				display: flex;
+				align-items: center;
+				gap: 10px;
+			}
+
+			.session-progress-info {
+				flex: 1;
+			}
+
+			.session-progress-label {
+				font-size: 11px;
+				color: var(--muted);
+				margin-bottom: 4px;
+			}
+
+			.session-progress-count {
+				font-size: 18px;
+				font-weight: 500;
+				color: var(--text);
+			}
+
+			.session-progress-count span {
+				font-size: 12px;
+				color: var(--muted);
+				font-weight: 400;
+			}
+
+			.progress-track {
+				height: 5px;
+				background: var(--bg);
+				border-radius: 10px;
+				overflow: hidden;
+				margin-top: 5px;
+			}
+
+			.progress-fill {
+				height: 100%;
+				background: var(--blue);
+				border-radius: 10px;
+				width: 0%;
+				transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+
+			.session-input {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+			}
+
+			.session-input input {
+				width: 60px;
+				text-align: center;
+				font-size: 13px;
+				padding: 6px 8px;
+			}
+
+			/* ── Preview ── */
+			.preview-box {
+				position: relative;
+				background: var(--bg2);
+				border-radius: var(--radius);
+				overflow: hidden;
+				min-height: 280px;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				border: 1px solid var(--border);
+			}
+
+			.preview-placeholder {
+				text-align: center;
+				color: var(--muted2);
+			}
+
+			.preview-placeholder-icon {
+				font-size: 48px;
+				margin-bottom: 8px;
+			}
+			.preview-placeholder p {
+				font-size: 12px;
+			}
+
+			#preview {
+				max-width: 100%;
+				max-height: 420px;
+				display: none;
+				border-radius: calc(var(--radius) - 2px);
+			}
+
+			.scan-line {
+				position: absolute;
+				width: 100%;
+				height: 2px;
+				background: linear-gradient(90deg, transparent, var(--blue), transparent);
+				box-shadow: 0 0 12px var(--blue);
+				top: 0;
+				animation: scanning 1.8s infinite linear;
+				display: none;
+			}
+
+			@keyframes scanning {
+				0% {
+					top: 0%;
+				}
+				100% {
+					top: 100%;
+				}
+			}
+
+			.preview-filename {
+				font-size: 11px;
+				color: var(--muted);
+				margin-top: 8px;
+				text-align: center;
+				font-family: var(--mono);
+			}
+
+			/* ── GPS chip ── */
+			.gps-chip {
+				display: inline-flex;
+				align-items: center;
+				gap: 5px;
+				font-size: 11px;
+				color: var(--muted);
+				background: var(--bg2);
+				border: 1px solid var(--border);
+				border-radius: 20px;
+				padding: 3px 10px;
+				cursor: pointer;
+				transition: all 0.15s;
+			}
+
+			.gps-chip:hover {
+				border-color: var(--green);
+				color: var(--green);
+			}
+			.gps-chip.active {
+				border-color: var(--green);
+				color: var(--green);
+				background: var(--green-bg);
+			}
+			.gps-dot {
+				width: 6px;
+				height: 6px;
+				background: currentColor;
+				border-radius: 50%;
+			}
+
+			/* ── Result badge ── */
+			.result-badge {
+				font-family: var(--serif);
+				font-size: 26px;
+				font-weight: 600;
+				text-align: center;
+				padding: 1.25rem 1rem;
+				border-radius: var(--radius);
+				transition: all 0.4s ease;
+				background: var(--bg2);
+				color: var(--muted);
+				border: 1.5px dashed var(--border);
+				letter-spacing: -0.02em;
+			}
+
+			.result-badge.saudavel {
+				background: var(--green-bg);
+				color: var(--green);
+				border: 1.5px solid var(--green-border);
+			}
+
+			.result-badge.doente {
+				background: var(--red-bg);
+				color: var(--red);
+				border: 1.5px solid var(--red-border);
+			}
+
+			.result-badge.atencao {
+				background: var(--amber-bg);
+				color: var(--amber);
+				border: 1.5px solid var(--amber-border);
+			}
+
+			/* ── Confidence ── */
+			.conf-row {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+				font-size: 12px;
+				color: var(--muted);
+				margin-top: 6px;
+			}
+
+			.conf-row b {
+				font-size: 15px;
+				color: var(--text);
+				font-family: var(--mono);
+			}
+
+			/* ── Risk pills ── */
+			.risk-row {
+				display: flex;
+				gap: 6px;
+				margin: 8px 0;
+				justify-content: center;
+			}
+
+			.risk-pill {
+				font-size: 11px;
+				padding: 4px 10px;
+				border-radius: 20px;
+				border: 1px solid var(--border);
+				color: var(--muted);
+				background: var(--bg2);
+				font-weight: 500;
+				cursor: default;
+			}
+
+			.risk-pill.active-green {
+				background: var(--green-bg);
+				color: var(--green);
+				border-color: var(--green-border);
+			}
+			.risk-pill.active-amber {
+				background: var(--amber-bg);
+				color: var(--amber);
+				border-color: var(--amber-border);
+			}
+			.risk-pill.active-red {
+				background: var(--red-bg);
+				color: var(--red);
+				border-color: var(--red-border);
+			}
+
+			/* ── Action box ── */
+			.action-box {
+				border-radius: var(--radius);
+				padding: 1rem;
+				border: 1px solid var(--border);
+				background: var(--bg2);
+				display: none;
+			}
+
+			.action-box.visible {
+				display: block;
+			}
+
+			.action-box-header {
+				font-size: 11px;
+				font-weight: 500;
+				text-transform: uppercase;
+				letter-spacing: 0.08em;
+				color: var(--muted);
+				margin-bottom: 8px;
+				display: flex;
+				align-items: center;
+				gap: 6px;
+			}
+
+			.action-box p {
+				font-size: 13px;
+				line-height: 1.6;
+				color: var(--text);
+			}
+
+			.action-box.green {
+				background: var(--green-bg);
+				border-color: var(--green-border);
+			}
+			.action-box.amber {
+				background: var(--amber-bg);
+				border-color: var(--amber-border);
+			}
+			.action-box.red {
+				background: var(--red-bg);
+				border-color: var(--red-border);
+			}
+
+			.action-speak-btn {
+				margin-top: 8px;
+				font-size: 11px;
+				padding: 5px 10px;
+				border-radius: 6px;
+				display: inline-flex;
+				align-items: center;
+				gap: 5px;
+			}
+
+			/* ── Prob bars ── */
+			.divider {
+				height: 1px;
+				background: var(--border2);
+				margin: 1rem 0;
+			}
+
+			.prob-row {
+				margin-bottom: 10px;
+			}
+
+			.prob-info {
+				display: flex;
+				justify-content: space-between;
+				font-size: 11px;
+				margin-bottom: 4px;
+				color: var(--muted);
+			}
+
+			.prob-info b {
+				color: var(--text);
+				font-size: 12px;
+			}
+
+			.prob-track {
+				height: 6px;
+				background: var(--bg);
+				border-radius: 4px;
+				overflow: hidden;
+			}
+
+			.prob-fill {
+				height: 100%;
+				border-radius: 4px;
+				transition: width 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+
+			/* ── History ── */
+			.history-list {
+				max-height: 200px;
+				overflow-y: auto;
+				padding-right: 2px;
+			}
+
+			.history-list::-webkit-scrollbar {
+				width: 4px;
+			}
+			.history-list::-webkit-scrollbar-track {
+				background: transparent;
+			}
+			.history-list::-webkit-scrollbar-thumb {
+				background: var(--border);
+				border-radius: 4px;
+			}
+
+			.history-item {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 8px 0;
+				border-bottom: 1px solid var(--border2);
+				font-size: 11px;
+				color: var(--muted);
+				animation: slideIn 0.2s ease;
+			}
+
+			.history-item:last-child {
+				border: none;
+			}
+
+			@keyframes slideIn {
+				from {
+					opacity: 0;
+					transform: translateX(-8px);
+				}
+				to {
+					opacity: 1;
+					transform: translateX(0);
+				}
+			}
+
+			.history-name {
+				font-family: var(--mono);
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				max-width: 140px;
+			}
+
+			.history-badge {
+				font-size: 10px;
+				padding: 2px 7px;
+				border-radius: 20px;
+				font-weight: 500;
+				white-space: nowrap;
+			}
+
+			.history-badge.saudavel {
+				background: var(--green-bg);
+				color: var(--green);
+			}
+			.history-badge.doente {
+				background: var(--red-bg);
+				color: var(--red);
+			}
+			.history-badge.atencao {
+				background: var(--amber-bg);
+				color: var(--amber);
+			}
+
+			/* ── Offline banner ── */
+			.offline-banner {
+				display: none;
+				background: var(--amber-bg);
+				border: 1px solid var(--amber-border);
+				border-radius: 8px;
+				padding: 8px 12px;
+				font-size: 12px;
+				color: var(--amber);
+				align-items: center;
+				gap: 6px;
+			}
+
+			.offline-banner.show {
+				display: flex;
+			}
+
+			/* ── Buttons group ── */
+			.btn-group {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+
+			/* ── Loading overlay ── */
+			.loading-overlay {
+				position: absolute;
+				inset: 0;
+				background: rgba(0, 0, 0, 0.3);
+				border-radius: calc(var(--radius) - 2px);
+				display: none;
+				align-items: center;
+				justify-content: center;
+				backdrop-filter: blur(2px);
+			}
+
+			.loading-overlay.show {
+				display: flex;
+			}
+
+			.loading-spinner {
+				width: 32px;
+				height: 32px;
+				border: 2px solid rgba(255, 255, 255, 0.2);
+				border-top-color: white;
+				border-radius: 50%;
+				animation: spin 0.7s linear infinite;
+			}
+
+			@keyframes spin {
+				to {
+					transform: rotate(360deg);
+				}
+			}
+
+			/* ── Voice button ── */
+			.voice-btn {
+				background: none;
+				border: 1px solid var(--border);
+				padding: 5px 10px;
+				font-size: 11px;
+				display: flex;
+				align-items: center;
+				gap: 5px;
+				color: var(--muted);
+				border-radius: 6px;
+			}
+
+			.voice-btn:hover {
+				color: var(--text);
+				border-color: var(--text);
+			}
+
+			/* ── Dashboard link ── */
+			.nav-link {
+				font-size: 12px;
+				color: var(--muted);
+				text-decoration: none;
+				display: flex;
+				align-items: center;
+				gap: 4px;
+				padding: 6px 12px;
+				border: 1px solid var(--border);
+				border-radius: 8px;
+				background: var(--surface);
+				transition: all 0.15s;
+				white-space: nowrap;
+			}
+
+			.nav-link:hover {
+				color: var(--text);
+				border-color: var(--muted);
+			}
+
+			/* ── Tooltip ── */
+			.tooltip-text {
+				font-size: 11px;
+				color: var(--muted2);
+				margin-top: 4px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<header>
+			<div class="header-left">
+				<div class="header-logo">🌿</div>
+				<h1>Scanner <span>por IA</span></h1>
+			</div>
+			<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap">
+				<div
+					class="offline-banner"
+					id="offlineBanner"
+				>
+					⚡ Sem conexão — modo offline ativo
+				</div>
+				<div
+					class="session-badge"
+					id="sessionBadge"
+				>
+					<b>0</b> analisadas
+				</div>
+				<a
+					class="nav-link"
+					href="dashboard.html"
+					>Dashboard →</a
+				>
+			</div>
+		</header>
+
+		<div class="page">
+			<!-- ── Coluna Esquerda: Configuração ── -->
+			<div style="display: flex; flex-direction: column; gap: 1.25rem">
+				<div class="card">
+					<div class="card-title">Configuração</div>
+
+					<div class="field">
+						<label class="field-label">Localidade / Talhão</label>
+						<div style="display: flex; gap: 6px; align-items: center">
+							<input
+								type="text"
+								id="inputLocalidade"
+								value="Talhão A"
+								style="flex: 1"
+							/>
+							<div
+								class="gps-chip"
+								id="gpsChip"
+								onclick="getGPS()"
+								title="Usar minha localização GPS"
+							>
+								<div class="gps-dot"></div>
+								GPS
+							</div>
+						</div>
+						<div
+							class="tooltip-text"
+							id="gpsInfo"
+						>
+							Clique em GPS para capturar localização automaticamente
+						</div>
+					</div>
+
+					<div class="field">
+						<label class="field-label">Meta da sessão (nº de amostras)</label>
+						<div class="session-input">
+							<input
+								type="text"
+								id="metaSessao"
+								value="30"
+								style="width: 70px; text-align: center"
+							/>
+							<span style="font-size: 11px; color: var(--muted)">imagens planejadas</span>
+						</div>
+					</div>
+
+					<div class="field">
+						<div class="session-progress">
+							<div class="session-progress-info">
+								<div class="session-progress-label">Progresso da sessão</div>
+								<div
+									class="session-progress-count"
+									id="sessionCount"
+								>
+									0 <span>/ <span id="metaDisplay">30</span> amostras</span>
+								</div>
+								<div class="progress-track">
+									<div
+										class="progress-fill"
+										id="sessionFill"
+									></div>
+								</div>
+							</div>
+						</div>
+					</div>
+
+					<div
+						id="dropzone"
+						class="dropzone"
+						style="margin-bottom: 10px"
+						ondragover="event.preventDefault()"
+						ondrop="handleDrop(event)"
+					>
+						<div class="dropzone-icon">📷</div>
+						<p>Clique ou arraste as fotos aqui</p>
+						<small id="fileCount">Nenhum arquivo selecionado</small>
+						<input
+							type="file"
+							id="imageUpload"
+							accept="image/*"
+							multiple
+							style="display: none"
+						/>
+					</div>
+
+					<!-- progress bar de lote -->
+					<div
+						class="progress-track"
+						style="margin-bottom: 10px; height: 6px"
+					>
+						<div
+							class="progress-fill"
+							id="progressBar"
+							style="background: var(--green)"
+						></div>
+					</div>
+
+					<div class="btn-group">
+						<button
+							class="primary"
+							id="btnAnalisar"
+							onclick="analisarLote()"
+						>
+							▶ Iniciar Análise
+						</button>
+						<button
+							class="secondary"
+							onclick="downloadResults()"
+						>
+							↓ Exportar JSON
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- ── Coluna Centro: Visualização ── -->
+			<div style="display: flex; flex-direction: column; gap: 1.25rem">
+				<div class="card">
+					<div class="card-title">Amostra atual</div>
+					<div
+						class="preview-box"
+						id="previewBox"
+					>
+						<div
+							class="preview-placeholder"
+							id="previewPlaceholder"
+						>
+							<div class="preview-placeholder-icon">🌱</div>
+							<p>Carregue uma imagem para começar</p>
+						</div>
+						<img id="preview" />
+						<div
+							id="scan"
+							class="scan-line"
+						></div>
+						<div
+							class="loading-overlay"
+							id="loadingOverlay"
+						>
+							<div class="loading-spinner"></div>
+						</div>
+					</div>
+					<div
+						class="preview-filename"
+						id="previewFilename"
+					></div>
+				</div>
+			</div>
+
+			<!-- ── Coluna Direita: Diagnóstico ── -->
+			<div
+				class="col-right"
+				style="display: flex; flex-direction: column; gap: 1.25rem"
+			>
+				<div class="card">
+					<div class="card-title">Diagnóstico</div>
+
+					<!-- Nível de risco pills -->
+					<div class="risk-row">
+						<div
+							class="risk-pill"
+							id="pillSaudavel"
+						>
+							🟢 Saudável
+						</div>
+						<div
+							class="risk-pill"
+							id="pillAtencao"
+						>
+							🟡 Atenção
+						</div>
+						<div
+							class="risk-pill"
+							id="pillDoente"
+						>
+							🔴 Tratar agora
+						</div>
+					</div>
+
+					<div
+						id="mainResult"
+						class="result-badge"
+					>
+						Aguardando...
+					</div>
+
+					<div class="conf-row">
+						<span>Confiança do modelo</span>
+						<b><span id="score">--</span>%</b>
+					</div>
+
+					<!-- Caixa de ação imediata -->
+					<div
+						class="action-box"
+						id="actionBox"
+					>
+						<div class="action-box-header">
+							<span id="actionIcon">⚡</span>
+							<span>Ação recomendada</span>
+							<button
+								class="voice-btn"
+								onclick="falarDiagnostico()"
+								style="margin-left: auto"
+							>
+								🔊 Ouvir
+							</button>
+						</div>
+						<p id="actionText"></p>
+					</div>
+
+					<div class="divider"></div>
+
+					<!-- Barras de probabilidade -->
+					<div class="card-title">Probabilidades</div>
+					<div id="label-container"></div>
+
+					<div class="divider"></div>
+
+					<!-- Histórico da sessão -->
+					<div
+						class="card-title"
+						style="display: flex; justify-content: space-between"
+					>
+						<span>Histórico da sessão</span>
+						<span
+							id="historyCount"
+							style="font-weight: 400; color: var(--muted2)"
+							>0 itens</span
+						>
+					</div>
+					<div
+						class="history-list"
+						id="history"
+					></div>
+				</div>
+			</div>
+		</div>
+
+		<script>
+			const URLmachine = "https://teachablemachine.withgoogle.com/models/rAmBzGusz/"
+			let model, maxPredictions, labelContainer
+			let imagens = []
+			let results = []
+			let analisadas = 0
+
+			// ── Ações recomendadas por diagnóstico ──
+			const acoes = {
+				Saudavel: {
+					nivel: "saudavel",
+					texto: "✅ Folha em ótimo estado. Continue o monitoramento periódico e mantenha o protocolo preventivo de adubação.",
+					cor: "green",
+				},
+				// Exemplos para doenças — adaptar conforme os labels do modelo
+				Ferrugem: {
+					nivel: "doente",
+					texto: "🚨 Provável ferrugem detectada. Aplique fungicida cúprico nas próximas 48h. Isole o talhão e acione o agrônomo responsável.",
+					cor: "red",
+				},
+				Mancha: {
+					nivel: "atencao",
+					texto: "⚠️ Manchas identificadas. Monitore a expansão nos próximos 3 dias. Evite irrigação excessiva e verifique espaçamento.",
+					cor: "amber",
+				},
+				Praga: {
+					nivel: "doente",
+					texto: "🚨 Sinais de ataque de praga. Aplique inseticida indicado pelo agrônomo. Vistorie as plantas ao redor imediatamente.",
+					cor: "red",
+				},
+				Deficiencia: {
+					nivel: "atencao",
+					texto: "⚠️ Possível deficiência nutricional. Realize análise de solo e corrija a adubação conforme recomendação técnica.",
+					cor: "amber",
+				},
+			}
+
+			function getAcao(classe, confianca) {
+				// Match parcial por palavra-chave nos labels
+				for (const key of Object.keys(acoes)) {
+					if (
+						classe.toLowerCase().includes(key.toLowerCase()) ||
+						key.toLowerCase().includes(classe.toLowerCase())
+					) {
+						return acoes[key]
+					}
+				}
+				// Default baseado na confiança
+				if (confianca >= 70) {
+					return {
+						nivel: "doente",
+						texto: `🚨 Anomalia "${classe}" detectada com alta confiança. Acione o agrônomo e isole a área para inspeção.`,
+						cor: "red",
+					}
+				}
+				return {
+					nivel: "atencao",
+					texto: `⚠️ Anomalia "${classe}" detectada. Confiança moderada — colete mais amostras e monitore o talhão nas próximas 48h.`,
+					cor: "amber",
+				}
+			}
+
+			// ── Atualiza contadores de sessão ──
+			function updateSessionCounter() {
+				const meta = parseInt(document.getElementById("metaSessao").value) || 30
+				document.getElementById("metaDisplay").textContent = meta
+				document.getElementById("sessionCount").innerHTML =
+					`${analisadas} <span>/ <span id="metaDisplay">${meta}</span> amostras</span>`
+				document.getElementById("sessionBadge").innerHTML = `<b>${analisadas}</b> analisadas`
+				const pct = Math.min((analisadas / meta) * 100, 100)
+				document.getElementById("sessionFill").style.width = pct + "%"
+			}
+
+			document.getElementById("metaSessao").addEventListener("input", updateSessionCounter)
+
+			// ── GPS ──
+			function getGPS() {
+				const chip = document.getElementById("gpsChip")
+				const info = document.getElementById("gpsInfo")
+
+				if (!navigator.geolocation) {
+					info.textContent = "GPS não suportado neste dispositivo."
+					return
+				}
+
+				chip.innerHTML = '<div class="gps-dot"></div> Buscando...'
+
+				navigator.geolocation.getCurrentPosition(
+					(pos) => {
+						const lat = pos.coords.latitude.toFixed(5)
+						const lon = pos.coords.longitude.toFixed(5)
+						document.getElementById("inputLocalidade").value = `${lat}, ${lon}`
+						chip.classList.add("active")
+						chip.innerHTML = '<div class="gps-dot"></div> Ativo'
+						info.textContent = `📍 Coordenadas capturadas: ${lat}, ${lon}`
+					},
+					() => {
+						chip.innerHTML = '<div class="gps-dot"></div> GPS'
+						info.textContent = "Não foi possível obter localização. Permissão negada."
+					}
+				)
+			}
+
+			// ── Offline detection ──
+			function updateOnlineStatus() {
+				const banner = document.getElementById("offlineBanner")
+				if (!navigator.onLine) {
+					banner.classList.add("show")
+				} else {
+					banner.classList.remove("show")
+				}
+			}
+
+			window.addEventListener("online", updateOnlineStatus)
+			window.addEventListener("offline", updateOnlineStatus)
+			updateOnlineStatus()
+
+			// ── Init modelo ──
+			async function init() {
+				try {
+					model = await tmImage.load(URLmachine + "model.json", URLmachine + "metadata.json")
+					maxPredictions = model.getTotalClasses()
+					labelContainer = document.getElementById("label-container")
+
+					for (let i = 0; i < maxPredictions; i++) {
+						const div = document.createElement("div")
+						div.className = "prob-row"
+						div.innerHTML = `
+            <div class="prob-info">
+              <span class="className" style="font-size:12px;">—</span>
+              <b class="prob">0%</b>
+            </div>
+            <div class="prob-track">
+              <div class="prob-fill" style="width:0%;background:var(--blue)"></div>
+            </div>`
+						labelContainer.appendChild(div)
+					}
+				} catch (e) {
+					console.error("Erro ao carregar modelo:", e)
+				}
+			}
+
+			// ── Upload ──
+			const input = document.getElementById("imageUpload")
+			const dropzone = document.getElementById("dropzone")
+
+			dropzone.onclick = () => input.click()
+
+			input.addEventListener("change", (e) => {
+				imagens = [...e.target.files]
+				updateFileCount()
+				if (imagens[0]) loadPreview(imagens[0])
+			})
+
+			function handleDrop(e) {
+				e.preventDefault()
+				imagens = [...e.dataTransfer.files].filter((f) => f.type.startsWith("image/"))
+				updateFileCount()
+				if (imagens[0]) loadPreview(imagens[0])
+			}
+
+			function updateFileCount() {
+				const el = document.getElementById("fileCount")
+				el.textContent =
+					imagens.length === 0
+						? "Nenhum arquivo selecionado"
+						: `${imagens.length} ${imagens.length === 1 ? "imagem" : "imagens"} selecionada${imagens.length > 1 ? "s" : ""}`
+			}
+
+			function loadPreview(file) {
+				const reader = new FileReader()
+				reader.onload = (e) => {
+					const img = document.getElementById("preview")
+					img.src = e.target.result
+					img.style.display = "block"
+					document.getElementById("previewPlaceholder").style.display = "none"
+					document.getElementById("previewFilename").textContent = file.name
+				}
+				reader.readAsDataURL(file)
+			}
+
+			// ── Análise em lote ──
+			async function analisarLote() {
+				if (!model) {
+					alert("Modelo ainda carregando, aguarde...")
+					return
+				}
+				if (imagens.length === 0) {
+					alert("Selecione ao menos uma imagem.")
+					return
+				}
+
+				document.getElementById("progressBar").style.width = "0%"
+				document.getElementById("btnAnalisar").disabled = true
+				document.getElementById("btnAnalisar").textContent = "Analisando..."
+
+				for (let i = 0; i < imagens.length; i++) {
+					await analisarImagem(imagens[i])
+					document.getElementById("progressBar").style.width = ((i + 1) / imagens.length) * 100 + "%"
+				}
+
+				document.getElementById("btnAnalisar").disabled = false
+				document.getElementById("btnAnalisar").textContent = "▶ Iniciar Análise"
+			}
+
+			// ── Análise individual ──
+			async function analisarImagem(file) {
+				return new Promise((resolve) => {
+					const reader = new FileReader()
+					reader.onload = async (e) => {
+						loadPreview(file)
+
+						const preview = document.getElementById("preview")
+						preview.src = e.target.result
+
+						document.getElementById("scan").style.display = "block"
+						document.getElementById("loadingOverlay").classList.add("show")
+
+						await new Promise((r) => setTimeout(r, 100))
+
+						const prediction = await model.predict(preview)
+
+						document.getElementById("scan").style.display = "none"
+						document.getElementById("loadingOverlay").classList.remove("show")
+
+						// Melhor resultado
+						let best = 0
+						let porcentagens = {}
+
+						for (let i = 0; i < prediction.length; i++) {
+							if (prediction[i].probability > prediction[best].probability) best = i
+							porcentagens[prediction[i].className] = parseFloat(
+								(prediction[i].probability * 100).toFixed(1)
+							)
+						}
+
+						// Atualiza barras
+						for (let i = 0; i < prediction.length; i++) {
+							const p = (prediction[i].probability * 100).toFixed(1)
+							const item = labelContainer.children[i]
+							item.querySelector(".className").textContent = prediction[i].className
+							item.querySelector(".prob").textContent = p + "%"
+							const fill = item.querySelector(".prob-fill")
+							fill.style.width = p + "%"
+							fill.style.background = p > 70 ? "var(--green)" : p > 40 ? "var(--amber)" : "var(--red)"
+						}
+
+						const classe = prediction[best].className
+						const conf = parseFloat((prediction[best].probability * 100).toFixed(1))
+
+						// Diagnóstico principal
+						const isSaudavel = classe.toLowerCase().includes("saudav")
+						const isDoente = conf >= 70 && !isSaudavel
+						const cls = isSaudavel ? "saudavel" : isDoente ? "doente" : "atencao"
+
+						const resultEl = document.getElementById("mainResult")
+						resultEl.className = "result-badge " + cls
+						resultEl.textContent = classe
+						document.getElementById("score").textContent = Math.round(conf)
+
+						// Pills de risco
+						document.getElementById("pillSaudavel").className =
+							"risk-pill" + (cls === "saudavel" ? " active-green" : "")
+						document.getElementById("pillAtencao").className =
+							"risk-pill" + (cls === "atencao" ? " active-amber" : "")
+						document.getElementById("pillDoente").className =
+							"risk-pill" + (cls === "doente" ? " active-red" : "")
+
+						// Ação imediata
+						const acao = isSaudavel ? acoes["Saudavel"] : getAcao(classe, conf)
+						const actionBox = document.getElementById("actionBox")
+						actionBox.className = "action-box visible " + acao.cor
+						document.getElementById("actionText").textContent = acao.texto
+						window._ultimaAcao = acao.texto
+
+						// JSON e servidor
+						const localidade = document.getElementById("inputLocalidade").value || "Talhão A"
+						const dado = {
+							fileName: file.name,
+							timestamp: new Date().toISOString(),
+							localidade,
+							estadoDefinido: classe,
+							porcentagens,
+						}
+
+						results.push(dado)
+						analisadas++
+						updateSessionCounter()
+
+						fetch("http://localhost:3000/salvar", {
+							method: "POST",
+							headers: { "Content-Type": "application/json" },
+							body: JSON.stringify(dado),
+						}).catch(() => {}) // silencioso — offline é esperado
+
+						addHistory(file.name, classe, conf, cls)
+						resolve()
+					}
+					reader.readAsDataURL(file)
+				})
+			}
+
+			// ── Voz ──
+			function falarDiagnostico() {
+				if (!window._ultimaAcao) return
+				if (!window.speechSynthesis) {
+					alert("Síntese de voz não suportada.")
+					return
+				}
+				const utter = new SpeechSynthesisUtterance(window._ultimaAcao)
+				utter.lang = "pt-BR"
+				window.speechSynthesis.speak(utter)
+			}
+
+			// ── Histórico ──
+			function addHistory(nome, classe, conf, cls) {
+				const count = document.getElementById("history").childElementCount
+				document.getElementById("historyCount").textContent = count + 1 + " itens"
+
+				const div = document.createElement("div")
+				div.className = "history-item"
+				div.innerHTML = `
+        <span class="history-name" title="${nome}">${nome}</span>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-size:10px;color:var(--muted2)">${Math.round(conf)}%</span>
+          <span class="history-badge ${cls}">${classe}</span>
+        </div>`
+				document.getElementById("history").prepend(div)
+			}
+
+			// ── Exportar JSON ──
+			let fileHandle
+
+			async function downloadResults() {
+				if (results.length === 0) {
+					alert("Nenhuma análise realizada ainda.")
+					return
+				}
+
+				const data = JSON.stringify(results, null, 2)
+
+				try {
+					if (!fileHandle) {
+						fileHandle = await window.showSaveFilePicker({
+							suggestedName: "relatorio-folhas.json",
+							types: [{ description: "JSON", accept: { "application/json": [".json"] } }],
+						})
+					}
+					const writable = await fileHandle.createWritable()
+					await writable.write(data)
+					await writable.close()
+					alert("Arquivo salvo com sucesso!")
+				} catch (err) {
+					if (err.name !== "AbortError") {
+						const blob = new Blob([data], { type: "application/json" })
+						const url = URL.createObjectURL(blob)
+						const a = document.createElement("a")
+						a.href = url
+						a.download = "relatorio-folhas.json"
+						a.click()
+						URL.revokeObjectURL(url)
+					}
+				}
+			}
+
+			init()
+		</script>
+	</body>
+</html>
