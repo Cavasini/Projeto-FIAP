@@ -1,4 +1,5 @@
 const fs = require("fs")
+const Mailer = require("./mailingService")
 
 const LIMITE_INFECCAO = 0.3 // 30%
 const MINIMO_AMOSTRAS = 3 // Mínimo de 3 folhas no talhão para considerar surto
@@ -53,6 +54,7 @@ function analisarAutomacao(dados) {
 
 	if (alertasGerados.length > 0) {
 		console.log(`🚨 Automação: ${alertasGerados.length} alerta(s) gerado(s). alerts.json atualizado!`)
+		Mailer.enviarAlertas(alertasGerados)
 	} else {
 		console.log("✅ Automação: Nenhuma anomalia crítica detectada no momento.")
 	}
