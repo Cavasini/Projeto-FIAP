@@ -168,5 +168,85 @@
       "Saudavel": 5.8,
       "Doente": 94.2
     }
+  },
+  {
+    "fileName": "folha ruim.jpg.jpeg",
+    "timestamp": "2026-05-22T02:57:13.551Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg.jpeg",
+    "timestamp": "2026-05-22T02:59:35.404Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg.jpeg",
+    "timestamp": "2026-05-22T03:06:39.007Z",
+    "localidade": "Talhão A",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg.jpeg",
+    "timestamp": "2026-05-22T03:09:36.908Z",
+    "localidade": "Talhão FIAP",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg.jpeg",
+    "timestamp": "2026-05-22T03:12:46.223Z",
+    "localidade": "Talhão Disney",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg.jpeg",
+    "timestamp": "2026-05-22T03:21:51.521Z",
+    "localidade": "Talhão FIAP - Fase 3",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg.jpeg",
+    "timestamp": "2026-05-22T03:25:24.154Z",
+    "localidade": "Talhão FIAP - FASE 3",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
+  },
+  {
+    "fileName": "folha ruim.jpg.jpeg",
+    "timestamp": "2026-05-22T03:27:32.676Z",
+    "localidade": "Talhão FIAP - FASE 3 - GRAVACAO",
+    "estadoDefinido": "Doente",
+    "porcentagens": {
+      "Saudavel": 5.8,
+      "Doente": 94.2
+    }
   }
 ]
